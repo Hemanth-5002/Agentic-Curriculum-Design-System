@@ -29,8 +29,8 @@ def generate_curriculum_pdf(data: dict) -> bytes:
     story.append(Spacer(1, 12))
     
     # Clean up Rationale for PDF
-    rationale_text = data['rationale']
-    if "Quota limit reached" in rationale_text:
+    rationale_text = data.get('rationale', 'No rationale provided.')
+    if rationale_text and "Quota limit reached" in rationale_text:
         rationale_text = "This curriculum was optimized using industry-standard templates and refined based on the specific academic domain and university context provided."
 
     # Rationale
@@ -40,7 +40,8 @@ def generate_curriculum_pdf(data: dict) -> bytes:
     
     # Prerequisites
     story.append(Paragraph("<b>Prerequisites:</b>", styles['Heading3']))
-    story.append(Paragraph(", ".join(data['prerequisites']), styles['Normal']))
+    prereqs = data.get('prerequisites', [])
+    story.append(Paragraph(", ".join(prereqs) if prereqs else "None", styles['Normal']))
     story.append(Spacer(1, 20))
     
     # Modules Table

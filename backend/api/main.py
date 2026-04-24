@@ -40,6 +40,18 @@ app.add_middleware(
 async def root():
     return {"status": "online", "message": "Curriculum API is active in Autonomous Mode"}
 
+@app.get("/health")
+async def health_check():
+    # Basic connectivity check
+    import os
+    env_check = "OK" if os.getenv("OPENAI_API_KEY") else "MISSING_KEYS"
+    return {
+        "status": "healthy",
+        "llm_config": env_check,
+        "mode": "autonomous",
+        "version": "1.1.0"
+    }
+
 @app.post("/api/generate", response_model=CurriculumDraft)
 def generate_curriculum(request: GenerationRequest):
     print(f"Received generation request for domain: {request.domain}")
@@ -61,26 +73,41 @@ def generate_curriculum(request: GenerationRequest):
         "feedback": []
     }
     
-    print("Executing LangGraph workflow...")
-    final_state = graph_app.invoke(initial_state)
-    print("Workflow complete.")
+    print(f"Executing LangGraph workflow for {request.domain}...")
+    try:
+        final_state = graph_app.invoke(initial_state)
+        print("Workflow complete.")
+    except Exception as e:
+        print(f"Workflow failed: {e}")
+        raise e
     
     # Save to storage (Persistence)
     history_file = f"storage/curricula.json"
-    history = []
-    if os.path.exists(history_file):
-        with open(history_file, 'r') as f:
-            history = json.load(f)
-    
-    result = {
-        "domain": final_state["domain"],
-        "modules": [m if isinstance(m, dict) else m.dict() for m in final_state["draft_modules"]],
-        "prerequisites": final_state["prerequisites"],
-        "rationale": final_state["generation_rationale"]
-    }
-    history.append(result)
-    with open(history_file, 'w') as f:
-        json.dump(history, f, indent=2)
+    try:
+        history = []
+        if os.path.exists(history_file):
+            with open(history_file, 'r') as f:
+                history = json.load(f)
+        
+        result = {
+            "domain": final_state["domain"],
+            "modules": [m if isinstance(m, dict) else m.dict() for m in final_state["draft_modules"]],
+            "prerequisites": final_state.get("prerequisites", []),
+            "rationale": final_state.get("generation_rationale", "")
+        }
+        history.append(result)
+        with open(history_file, 'w') as f:
+            json.dump(history, f, indent=2)
+        print(f"Result saved to {history_file}")
+    except Exception as e:
+        print(f"Error saving result: {e}")
+        # Still return result if possible
+        result = {
+            "domain": final_state["domain"],
+            "modules": [m if isinstance(m, dict) else m.dict() for m in final_state["draft_modules"]],
+            "prerequisites": final_state.get("prerequisites", []),
+            "rationale": final_state.get("generation_rationale", "")
+        }
     
     return result
 

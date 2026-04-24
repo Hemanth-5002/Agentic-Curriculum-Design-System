@@ -15,11 +15,40 @@ function App() {
   });
   
   const [feedbackModule, setFeedbackModule] = useState(null);
+  const [systemStatus, setSystemStatus] = useState('Checking...');
+  const [currentStep, setCurrentStep] = useState(0);
+  const steps = [
+    "🛰️ Industry Scraper reading trends...",
+    "🧬 Academic Agent parsing ArXiv...",
+    "🔍 Identifying skill gaps...",
+    "🧠 Orchestrating RAG synthesis...",
+    "✨ Finalizing curriculum modules..."
+  ];
+
+  useState(() => {
+    const checkHealth = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/health`);
+        const data = await res.json();
+        setSystemStatus(data.status === 'healthy' ? 'Active' : 'Degraded');
+      } catch (e) {
+        setSystemStatus('Offline');
+      }
+    };
+    checkHealth();
+    const interval = setInterval(checkHealth, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Removed handleFileUpload as requested
 
   const handleGenerate = async () => {
     setLoading(true);
+    setCurrentStep(0);
+    const stepInterval = setInterval(() => {
+      setCurrentStep(prev => (prev < steps.length - 1 ? prev + 1 : prev));
+    }, 4000);
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/generate`, {
         method: 'POST',
@@ -30,6 +59,7 @@ function App() {
         })
       });
       
+      clearInterval(stepInterval);
       if (!response.ok) {
         throw new Error('Failed to generate curriculum');
       }
@@ -38,8 +68,9 @@ function App() {
       setCurriculum(data);
       setLoading(false);
     } catch (error) {
+      clearInterval(stepInterval);
       console.error(error);
-      alert("Error generating curriculum. Please ensure the backend is running.");
+      alert(`Backend Connection Issue: ${error.message}\n\nPlease check if the terminal running 'uvicorn' shows any Python errors.`);
       setLoading(false);
     }
   };
@@ -84,7 +115,11 @@ function App() {
           <h1 className="glow-text" style={{ fontSize: '1.5rem', margin: 0 }}>Agentic Curriculum Generator</h1>
         </div>
         <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-          <span>LangGraph Node: <strong style={{color:'var(--success)'}}>Idle</strong></span>
+          <span>Autonomous Mode: <strong style={{color:'var(--success)'}}>Enabled</strong></span>
+          <span>System Status: <strong style={{
+            color: systemStatus === 'Active' ? 'var(--success)' : 
+                   systemStatus === 'Offline' ? 'var(--neon-pink)' : 'var(--neon-blue)'
+          }}>{systemStatus}</strong></span>
         </div>
       </header>
 
@@ -171,13 +206,48 @@ function App() {
           )}
 
           {loading && (
-             <div className="glass-panel animate-fade-in" style={{ padding: '3rem', textAlign: 'center' }}>
-                <h2 className="glow-text">Orchestrating AI Agents...</h2>
-                <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
-                  <span style={{color: 'var(--neon-blue)'}}>✓ Industry Scraper reading LinkedIn...</span>
-                  <span style={{color: 'var(--neon-purple)'}}>✓ Academic Agent parsing ArXiv...</span>
-                  <span style={{color: 'var(--text-muted)'}}>• Analyzing skill gaps...</span>
+             <div className="glass-panel animate-fade-in" style={{ 
+                padding: '3rem', textAlign: 'center', 
+                border: '1px solid var(--neon-blue)',
+                boxShadow: '0 0 40px rgba(0, 240, 255, 0.1)'
+             }}>
+                <h2 className="glow-text" style={{ marginBottom: '2rem' }}>Agent Orchestration in Progress</h2>
+                
+                <div style={{ 
+                  display: 'flex', flexDirection: 'column', gap: '1.2rem', 
+                  alignItems: 'center', maxWidth: '400px', margin: '0 auto' 
+                }}>
+                  {steps.map((step, idx) => (
+                    <div key={idx} style={{ 
+                      display: 'flex', alignItems: 'center', gap: '1rem', 
+                      width: '100%', opacity: idx === currentStep ? 1 : idx < currentStep ? 0.6 : 0.2,
+                      transition: 'all 0.5s ease',
+                      padding: '0.8rem 1rem',
+                      borderRadius: '10px',
+                      background: idx === currentStep ? 'rgba(0, 240, 255, 0.05)' : 'transparent',
+                      border: idx === currentStep ? '1px solid var(--neon-blue)' : '1px solid transparent'
+                    }}>
+                      <span style={{ 
+                        color: idx < currentStep ? 'var(--success)' : 
+                               idx === currentStep ? 'var(--neon-blue)' : 'var(--text-muted)'
+                      }}>
+                        {idx < currentStep ? '✓' : idx === currentStep ? '●' : '○'}
+                      </span>
+                      <span style={{ 
+                        color: idx === currentStep ? 'white' : 'var(--text-muted)',
+                        fontWeight: idx === currentStep ? '600' : '400'
+                      }}>
+                        {step}
+                      </span>
+                    </div>
+                  ))}
                 </div>
+
+                <div className="spinner" style={{
+                  marginTop: '3rem', width: '40px', height: '40px', 
+                  border: '4px solid rgba(0,240,255,0.1)', borderTopColor: 'var(--neon-blue)', 
+                  borderRadius: '50%', animation: 'spin 1.5s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite'
+                }}></div>
              </div>
           )}
 

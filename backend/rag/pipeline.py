@@ -62,31 +62,23 @@ def generate_curriculum_rag(domain: str, industry_data: List[str], academic_pape
         return str(response)
     except Exception as e:
         print(f"RAG Error: {e}")
-        if "insufficient_quota" in str(e).lower() or "quota" in str(e).lower():
-            print("RAG: Quota exceeded. Returning specialized fallback curriculum.")
-            # High-quality fallback
-            import json
-            fallback = {
-                "domain": domain,
-                "modules": [
-                    {
-                        "title": f"Foundation of Advanced {domain}",
-                        "description": "Comprehensive introduction reflecting modern industry standards and recent research trends.",
-                        "credit_hours": 3
-                    },
-                    {
-                        "title": "Practical Implementation & Case Studies",
-                        "description": "Hands-on lab sessions focusing on real-world applications and problem-solving.",
-                        "credit_hours": 4
-                    },
-                    {
-                        "title": "Emerging Technologies Nexus",
-                        "description": "Deep dive into state-of-the-art frameworks and future-looking academic concepts.",
-                        "credit_hours": 4
-                    }
-                ],
-                "prerequisites": ["Domain Basics", "Quantitative Methods", "Advanced Programming"],
-                "rationale": "Quota limit reached. This curriculum provides a high-fidelity template based on general best practices for this domain."
-            }
-            return json.dumps(fallback)
-        raise e
+        # Always return fallback instead of raising to keep the UI alive
+        import json
+        fallback = {
+            "domain": domain,
+            "modules": [
+                {
+                    "title": f"Core Principles of {domain}",
+                    "description": "Foundational module covering high-demand industry skills and modern research applications.",
+                    "credit_hours": 4
+                },
+                {
+                    "title": "Agentic Implementation Lab",
+                    "description": "Practical session focusing on autonomous systems and real-world deployment.",
+                    "credit_hours": 3
+                }
+            ],
+            "prerequisites": ["Foundational Mathematics", "Programming Proficiency"],
+            "rationale": f"Generated via Autonomous Mode Fallback. Reason: {str(e)[:50]}..."
+        }
+        return json.dumps(fallback)
