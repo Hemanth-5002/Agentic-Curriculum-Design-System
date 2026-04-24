@@ -16,7 +16,7 @@ def skill_gap_agent(state: AgentState):
     # in real setup, this might be another LLM call comparing trends with current_syllabus
     return {"skill_gap": ["Practical implementation", "Latest research integration"]}
 
-// Node removed for autonomous tracking mode
+# Node removed for autonomous tracking mode
 
 def academic_agent(state: AgentState):
     domain = state.get("domain", "Artificial Intelligence")
