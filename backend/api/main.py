@@ -38,20 +38,7 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"status": "online", "message": "Curriculum API is active"}
-
-@app.post("/api/upload-syllabus")
-async def upload_syllabus(file: UploadFile = File(...)):
-    try:
-        print(f"DEBUG: Receiving file upload: {file.filename}")
-        content = await file.read()
-        print(f"DEBUG: File size: {len(content)} bytes")
-        text = extract_text_from_pdf(content)
-        print(f"DEBUG: Extraction complete. Text length: {len(text)}")
-        return {"text": text, "filename": file.filename}
-    except Exception as e:
-        print(f"CRITICAL ERROR in upload: {str(e)}")
-        return Response(content=json.dumps({"error": str(e)}), status_code=500)
+    return {"status": "online", "message": "Curriculum API is active in Autonomous Mode"}
 
 @app.post("/api/generate", response_model=CurriculumDraft)
 def generate_curriculum(request: GenerationRequest):

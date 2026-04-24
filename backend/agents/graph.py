@@ -16,12 +16,7 @@ def skill_gap_agent(state: AgentState):
     # in real setup, this might be another LLM call comparing trends with current_syllabus
     return {"skill_gap": ["Practical implementation", "Latest research integration"]}
 
-def syllabus_scraper_agent(state: AgentState):
-    # If the user uploaded a syllabus, it's already in the state
-    if state.get("current_syllabus"):
-        return {"current_syllabus": state["current_syllabus"]}
-    # Otherwise, provide a default baseline
-    return {"current_syllabus": "Standard curriculum for this domain with basic foundations."}
+// Node removed for autonomous tracking mode
 
 def academic_agent(state: AgentState):
     domain = state.get("domain", "Artificial Intelligence")
@@ -42,7 +37,7 @@ def orchestrator(state: AgentState):
     if not academic:
         academic = [] 
         
-    current_syllabus = state["current_syllabus"]
+    current_syllabus = "AUTONOMOUS_TRACKING_MODE: No legacy syllabus provided. Agent must generate based on 100% real-time industry and academic needs."
     
     # Trigger RAG to generate the curriculum
     print("Orchestrator: Triggering RAG synthesis...")
@@ -71,18 +66,14 @@ workflow = StateGraph(AgentState)
 
 workflow.add_node("industry_trends", industry_trends_agent)
 workflow.add_node("skill_gap", skill_gap_agent)
-workflow.add_node("syllabus_scraper", syllabus_scraper_agent)
 workflow.add_node("academic", academic_agent)
 workflow.add_node("orchestrator", orchestrator)
 
 # Define edges
-workflow.set_entry_point("syllabus_scraper")
+workflow.set_entry_point("industry_trends")
 
-# After we scrape syllabus, run research paths
-workflow.add_edge("syllabus_scraper", "industry_trends")
-workflow.add_edge("syllabus_scraper", "academic")
-
-# Once trends are here, refine gap
+# Start both research paths immediately
+workflow.add_edge("industry_trends", "academic")
 workflow.add_edge("industry_trends", "skill_gap")
 
 # Finally, all flow into orchestrator

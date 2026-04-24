@@ -16,30 +16,7 @@ function App() {
   
   const [feedbackModule, setFeedbackModule] = useState(null);
 
-  const [uploadedSyllabus, setUploadedSyllabus] = useState("");
-  const [fileName, setFileName] = useState("");
-
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    setFileName(file.name);
-    const formData = new FormData();
-    formData.append("file", file);
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/upload-syllabus`, {
-        method: 'POST',
-        body: formData
-      });
-      const data = await response.json();
-      setUploadedSyllabus(data.text);
-      alert("Syllabus uploaded and parsed successfully!");
-    } catch (error) {
-      console.error(error);
-      alert("Error uploading PDF.");
-    }
-  };
+  // Removed handleFileUpload as requested
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -49,7 +26,7 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formConfig,
-          current_syllabus: uploadedSyllabus
+          current_syllabus: "Autonomous scan requested"
         })
       });
       
@@ -143,21 +120,17 @@ function App() {
             <option>Certification</option>
           </select>
 
-          <label className="label">Upload Current Syllabus (PDF)</label>
-          <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
-            <input 
-              type="file" 
-              accept=".pdf"
-              onChange={handleFileUpload}
-              style={{ display: 'none' }}
-              id="pdf-upload"
-            />
-            <label htmlFor="pdf-upload" className="btn-secondary" style={{ 
-              display: 'block', textAlign: 'center', cursor: 'pointer',
-              border: '1px dashed var(--neon-blue)', background: 'rgba(0, 240, 255, 0.05)'
-            }}>
-              {fileName ? `✓ ${fileName}` : "Select PDF Document"}
-            </label>
+          {/* PDF Upload removed for autonomous tracking mode */}
+          <div style={{ 
+            background: 'rgba(0, 240, 255, 0.05)', 
+            padding: '1rem', 
+            borderRadius: '12px',
+            border: '1px solid var(--neon-blue)',
+            marginBottom: '1.5rem',
+            fontSize: '0.85rem',
+            color: 'var(--neon-blue)'
+          }}>
+            🛰️ <strong>Autonomous Mode Active</strong>: Agents are tracking real-time industry shifts.
           </div>
 
           <button 
@@ -174,7 +147,7 @@ function App() {
                 }}></span>
                 Running Agents...
               </>
-            ) : 'Analyze & Map Syllabus'}
+            ) : 'Start Real-time Generation'}
           </button>
 
           <style>{`
