@@ -9,8 +9,14 @@ def extract_text_from_pdf(file_content: bytes) -> str:
         reader = PdfReader(io.BytesIO(file_content))
         text = ""
         for page in reader.pages:
-            text += page.extract_text() + "\n"
+            extracted = page.extract_text()
+            if extracted:
+                text += extracted + "\n"
+        
+        if not text.strip():
+            return "Warning: Could not extract any readable text from this PDF. Please ensure it is not an image-only scan."
+            
         return text.strip()
     except Exception as e:
         print(f"Error extracting PDF: {e}")
-        return "Error reading syllabus PDF."
+        return f"Error reading syllabus PDF: {str(e)}"
