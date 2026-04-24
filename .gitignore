@@ -1,0 +1,25 @@
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/.venv
+**/venv/
+**/env/
+**/ENV/
+
+# Node
+**/node_modules/
+**/dist/
+**/build/
+.eslintcache
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Project Specific
+backend/storage/*.json
+backend/server_log*.txt
+*.pdf
+.DS_Store
