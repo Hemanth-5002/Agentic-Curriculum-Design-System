@@ -24,54 +24,50 @@ def generate_curriculum_pdf(data: dict) -> bytes:
     
     story = []
     
-    # Title
-    story.append(Paragraph(f"{data['domain']} Curriculum", title_style))
-    story.append(Spacer(1, 12))
+    # University Name
+    uni_style = ParagraphStyle(
+        'UniStyle',
+        parent=styles['Normal'],
+        fontSize=20,
+        textColor=colors.HexColor("#0a0f1c"),  # Dark blue/black for visibility
+        spaceAfter=5
+    )
+    story.append(Paragraph(data.get('university_name', 'University Curriculum').upper(), uni_style))
     
-    # Clean up Rationale for PDF
-    rationale_text = data.get('rationale', 'No rationale provided.')
-    if rationale_text and "Quota limit reached" in rationale_text:
-        rationale_text = "This curriculum was optimized using industry-standard templates and refined based on the specific academic domain and university context provided."
-
-    # Rationale
-    story.append(Paragraph("<b>Rationale:</b>", styles['Heading3']))
-    story.append(Paragraph(rationale_text, styles['Normal']))
-    story.append(Spacer(1, 12))
-    
-    # Prerequisites
-    story.append(Paragraph("<b>Prerequisites:</b>", styles['Heading3']))
-    prereqs = data.get('prerequisites', [])
-    story.append(Paragraph(", ".join(prereqs) if prereqs else "None", styles['Normal']))
-    story.append(Spacer(1, 20))
-    
-    # Modules Table
-    story.append(Paragraph("<b>Proposed Modules:</b>", styles['Heading2']))
+    # Domain Title
+    story.append(Paragraph(f"{data['domain']} Blueprint", title_style))
     story.append(Spacer(1, 10))
     
-    table_data = [["#", "Module Title", "Description", "Credits"]]
-    for i, mod in enumerate(data['modules']):
-        table_data.append([
-            str(i+1),
-            Paragraph(mod['title'], styles['Helvetica-Bold'] if 'Helvetica-Bold' in styles else styles['Normal']),
-            Paragraph(mod['description'], styles['Normal']),
-            str(mod['credit_hours'])
-        ])
-        
-    # Total width ~460 for standard letter size with margins
-    t = Table(table_data, colWidths=[25, 125, 260, 50])
-    t.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#0a0f1c")),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-    ]))
+    # Key Highlights (The 4 points requested)
+    story.append(Paragraph("<b>Key Curriculum Highlights:</b>", styles['Heading3']))
+    highlights = [
+        "• <b>Industry Alignment:</b> Mapped to 2024 real-time job market requirements.",
+        "• <b>Research Driven:</b> Includes latest findings from ArXiv academic repositories.",
+        "• <b>Specialization Focus:</b> Designed for modern career paths in " + data['domain'] + ".",
+        "• <b>Practical Readiness:</b> Balanced credit distribution for hands-on learning."
+    ]
+    for point in highlights:
+        story.append(Paragraph(point, styles['Normal']))
     
-    story.append(t)
+    story.append(Spacer(1, 20))
+    
+    # Gap Analysis
+    gap_analysis = data.get('gap_analysis', '')
+    if gap_analysis and gap_analysis.strip() and "Full modern implementation required" not in gap_analysis:
+        story.append(Paragraph("<b>Gap Analysis (What needs to be implemented):</b>", styles['Heading3']))
+        story.append(Paragraph(gap_analysis, styles['Normal']))
+        story.append(Spacer(1, 20))
+    
+    # Modules (Point-wise)
+    story.append(Paragraph("<b>Proposed Curriculum Modules:</b>", styles['Heading2']))
+    story.append(Spacer(1, 10))
+    
+    for i, mod in enumerate(data['modules']):
+        # Point-wise Title
+        story.append(Paragraph(f"<b>{i+1}. {mod['title']} ({mod['credit_hours']} Credits)</b>", styles['Normal']))
+        # Description (maintains line breaks if present)
+        story.append(Paragraph(f"{mod['description']}", styles['Normal']))
+        story.append(Spacer(1, 15))
     
     doc.build(story)
     buffer.seek(0)

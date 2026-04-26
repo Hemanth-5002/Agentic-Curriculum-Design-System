@@ -36,6 +36,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def log_requests(request, call_next):
+    print(f"Incoming request: {request.method} {request.url.path}")
+    response = await call_next(request)
+    print(f"Response status: {response.status_code}")
+    return response
+
 @app.get("/")
 async def root():
     return {"status": "online", "message": "Curriculum API is active in Autonomous Mode"}
@@ -91,9 +98,11 @@ def generate_curriculum(request: GenerationRequest):
         
         result = {
             "domain": final_state["domain"],
+            "university_name": request.university_name,
             "modules": [m if isinstance(m, dict) else m.dict() for m in final_state["draft_modules"]],
             "prerequisites": final_state.get("prerequisites", []),
-            "rationale": final_state.get("generation_rationale", "")
+            "rationale": final_state.get("generation_rationale", ""),
+            "gap_analysis": final_state.get("gap_analysis", "")
         }
         history.append(result)
         with open(history_file, 'w') as f:
@@ -104,9 +113,11 @@ def generate_curriculum(request: GenerationRequest):
         # Still return result if possible
         result = {
             "domain": final_state["domain"],
+            "university_name": request.university_name,
             "modules": [m if isinstance(m, dict) else m.dict() for m in final_state["draft_modules"]],
             "prerequisites": final_state.get("prerequisites", []),
-            "rationale": final_state.get("generation_rationale", "")
+            "rationale": final_state.get("generation_rationale", ""),
+            "gap_analysis": final_state.get("gap_analysis", "")
         }
     
     return result

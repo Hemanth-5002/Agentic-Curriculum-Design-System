@@ -37,7 +37,9 @@ def orchestrator(state: AgentState):
     if not academic:
         academic = [] 
         
-    current_syllabus = "AUTONOMOUS_TRACKING_MODE: No legacy syllabus provided. Agent must generate based on 100% real-time industry and academic needs."
+    current_syllabus = state.get("current_syllabus", "")
+    if not current_syllabus or current_syllabus.strip() == "Autonomous scan requested":
+        current_syllabus = "AUTONOMOUS_TRACKING_MODE: No legacy syllabus provided. Agent must generate based on 100% real-time industry and academic needs."
     
     # Trigger RAG to generate the curriculum
     print("Orchestrator: Triggering RAG synthesis...")
@@ -52,7 +54,8 @@ def orchestrator(state: AgentState):
         return {
             "draft_modules": data.get("modules", []),
             "generation_rationale": data.get("rationale", ""),
-            "prerequisites": data.get("prerequisites", [])
+            "prerequisites": data.get("prerequisites", []),
+            "gap_analysis": data.get("gap_analysis", "")
         }
     except Exception as e:
         print(f"Error parsing LLM response: {e}")

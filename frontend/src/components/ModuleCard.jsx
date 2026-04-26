@@ -21,7 +21,7 @@ const ModuleCard = ({ module, index, onFeedback }) => {
         </span>
       </div>
       
-      <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '1.5rem' }}>
+      <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '1.5rem', whiteSpace: 'pre-wrap' }}>
         {module.description}
       </p>
 

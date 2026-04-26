@@ -8,9 +8,11 @@ class Module(BaseModel):
 
 class CurriculumDraft(BaseModel):
     domain: str
+    university_name: str
     modules: List[Module]
     prerequisites: List[str]
     rationale: str
+    gap_analysis: str = ""
 
 class Feedback(BaseModel):
     module_title: str

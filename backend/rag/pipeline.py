@@ -1,68 +1,82 @@
 import os
 from typing import List
 from llama_index.core import Document, VectorStoreIndex, StorageContext
-from llama_index.llms.openai import OpenAI
-from llama_index.core.node_parser import SimpleNodeParser
+import requests
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
 
+def call_gemini_api(prompt: str) -> str:
+    api_key = os.getenv("GOOGLE_API_KEY")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    
+    headers = {"Content-Type": "application/json"}
+    data = {
+        "contents": [{"parts": [{"text": prompt}]}]
+    }
+    
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 200:
+        result = response.json()
+        return result['candidates'][0]['content']['parts'][0]['text']
+    else:
+        raise Exception(f"Gemini API Error: {response.text}")
+
 def generate_curriculum_rag(domain: str, industry_data: List[str], academic_papers: List[dict], current_syllabus: str) -> str:
     """
-    Use RAG to synthesize a curriculum draft.
+    Use custom API call to synthesize a curriculum draft.
     """
-    llm = OpenAI(model="gpt-4o-mini", temperature=0.3)
     
     # Combine all research data into documents
     documents = []
     
-    # Industry data
-    industry_text = "Industry Trends: " + ", ".join(industry_data)
-    documents.append(Document(text=industry_text, metadata={"source": "industry_search"}))
-    
-    # Academic data
-    for paper in academic_papers:
-        text = f"Title: {paper['title']}\nSummary: {paper['summary']}"
-        documents.append(Document(text=text, metadata={"source": "arxiv", "link": paper['link']}))
-        
-    # Current Syllabus data
-    documents.append(Document(text=f"Existing Syllabus: {current_syllabus}", metadata={"source": "university_input"}))
-    
     try:
-        # Create index
-        print("RAG: Creating VectorStoreIndex...")
-        index = VectorStoreIndex.from_documents(documents)
+        # Build the full context for the prompt
+        industry_text = "Industry Trends: " + ", ".join(industry_data)
+        context = f"Industry Data: {industry_text}\n\nAcademic Papers:\n"
+        for paper in academic_papers:
+            context += f"- {paper['title']}: {paper['summary']}\n"
         
-        # Query engine
-        print("RAG: Querying LLM (gpt-4o-mini)...")
-        query_engine = index.as_query_engine(llm=llm)
-        
+        context += f"\nExisting Syllabus: {current_syllabus}"
+
         prompt = f"""
-        Based on the provided industry trends, academic papers, and current syllabus for {domain}, 
+        Act as a Senior Educational Consultant. Based on the provided data for {domain}, 
         propose a modern curriculum. 
-        Focus on closing the gap between academia and industry.
+        
+        DATA CONTEXT:
+        {context}
+        
+        CRITICAL INSTRUCTIONS FOR CLARITY:
+        1. Use SIMPLE, PLAIN LANGUAGE. Avoid unnecessary academic jargon.
+        2. In "description", use clear bullet points for key topics.
+        3. Make the "rationale" read like a friendly executive summary that explains the "Why" in 3 simple sentences.
+        4. Ensure the titles are catchy and professional.
+        5. Provide a "gap_analysis" section. If an "Existing Syllabus" is provided, explicitly state what is missing compared to modern industry trends and what HAS TO BE IMPLEMENTED. If none is provided, just say "Full modern implementation required."
         
         Return the response in JSON format matching this schema:
         {{
             "domain": "{domain}",
             "modules": [
                 {{
-                    "title": "Module Title",
-                    "description": "Module Description",
+                    "title": "Clear & Professional Module Title",
+                    "description": "A short 1-sentence intro followed by 3 bullet points of simple learning outcomes.",
                     "credit_hours": 3
                 }}
             ],
-            "prerequisites": ["Prereq 1", "Prereq 2"],
-            "rationale": "Detailed explanation of why this was chosen."
+            "prerequisites": ["List of simple skills needed before starting"],
+            "rationale": "A 3-sentence simple explanation: 1. Current state, 2. The Gap found, 3. How this curriculum fixes it.",
+            "gap_analysis": "Point-wise explanation of what needs to be implemented and what was missing in the old syllabus."
         }}
         """
         
-        response = query_engine.query(prompt)
-        print("RAG: LLM response received.")
+        print("RAG: Calling Gemini API directly...")
+        response = call_gemini_api(prompt)
+        print("RAG: Gemini response received.")
         return str(response)
     except Exception as e:
-        print(f"RAG Error: {e}")
-        # Always return fallback instead of raising to keep the UI alive
+        print(f"Generation Error: {e}")
+        # Return fallback with the ACTUAL error so we can debug
         import json
         fallback = {
             "domain": domain,
@@ -71,14 +85,9 @@ def generate_curriculum_rag(domain: str, industry_data: List[str], academic_pape
                     "title": f"Core Principles of {domain}",
                     "description": "Foundational module covering high-demand industry skills and modern research applications.",
                     "credit_hours": 4
-                },
-                {
-                    "title": "Agentic Implementation Lab",
-                    "description": "Practical session focusing on autonomous systems and real-world deployment.",
-                    "credit_hours": 3
                 }
             ],
-            "prerequisites": ["Foundational Mathematics", "Programming Proficiency"],
-            "rationale": f"Generated via Autonomous Mode Fallback. Reason: {str(e)[:50]}..."
+            "prerequisites": ["Foundational Mathematics"],
+            "rationale": f"System Error: {str(e)}"
         }
         return json.dumps(fallback)
