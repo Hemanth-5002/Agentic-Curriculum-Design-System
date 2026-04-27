@@ -9,11 +9,18 @@ def search_arxiv(query: str, max_results: int = 5) -> List[dict]:
     base_url = "http://export.arxiv.org/api/query?"
     params = f"search_query=all:{query}&start=0&max_results={max_results}&sortBy=relevance&sortOrder=descending"
     
-    response = requests.get(base_url + params, timeout=10)
-    if response.status_code != 200:
+    try:
+        response = requests.get(base_url + params, timeout=10)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print(f"ArXiv API error: {e}")
         return []
 
-    root = ET.fromstring(response.content)
+    try:
+        root = ET.fromstring(response.content)
+    except ET.ParseError as e:
+        print(f"Error parsing ArXiv XML: {e}")
+        return []
     papers = []
     
     # ArXiv API uses Atom format
