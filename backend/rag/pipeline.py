@@ -53,7 +53,7 @@ def generate_curriculum_rag(domain: str, industry_data: List[str], academic_pape
         3. Make the "rationale" read like a friendly executive summary that explains the "Why" in 3 simple sentences.
         4. Ensure the titles are catchy and professional.
         5. Provide a "gap_analysis" section. If an "Existing Syllabus" is provided, explicitly state what is missing compared to modern industry trends and what HAS TO BE IMPLEMENTED. If none is provided, just say "Full modern implementation required."
-        6. GENERATE A COMPLETE CURRICULUM WITH AT LEAST 4 TO 6 DIFFERENT MODULES.
+        6. YOU MUST GENERATE EXACTLY 5 DIFFERENT MODULES. DO NOT GENERATE LESS THAN 5 MODULES. THIS IS A HARD REQUIREMENT.
         
         Return the response in JSON format matching this schema:
         {{
@@ -69,7 +69,7 @@ def generate_curriculum_rag(domain: str, industry_data: List[str], academic_pape
                     "description": "Description for the next module...",
                     "credit_hours": 4
                 }}
-                // ... create at least 4 to 6 modules total
+                // ... YOU MUST create exactly 5 modules total. Do not deviate from this.
             ],
             "prerequisites": ["List of simple skills needed before starting"],
             "rationale": "A 3-sentence simple explanation: 1. Current state, 2. The Gap found, 3. How this curriculum fixes it.",
