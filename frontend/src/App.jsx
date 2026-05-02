@@ -257,7 +257,7 @@ function App() {
                 </button>
                 <h2 style={{ fontSize: '2.8rem', fontWeight: '800', marginBottom: '0.2rem', color: 'var(--neon-blue)', textTransform: 'uppercase', letterSpacing: '1px' }}>{curriculum.university_name}</h2>
                 <h3 style={{ fontSize: '1.8rem', marginBottom: '2rem', color: 'white', borderLeft: '4px solid var(--neon-purple)', paddingLeft: '1rem' }}>{curriculum.domain} Curriculum Blueprint</h3>
-                
+
                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
                   <h4 style={{ color: 'var(--neon-purple)', marginBottom: '1rem', fontSize: '1.1rem' }}>Key Curriculum Highlights:</h4>
                   <ul style={{ color: 'var(--text-muted)', fontSize: '0.95rem', paddingLeft: '1.2rem', lineHeight: '1.8', marginBottom: curriculum.gap_analysis ? '1.5rem' : '0' }}>
@@ -266,7 +266,7 @@ function App() {
                     <li><strong>Specialization Focus:</strong> Designed for modern career paths in {curriculum.domain}.</li>
                     <li><strong>Practical Readiness:</strong> Balanced credit distribution for hands-on learning.</li>
                   </ul>
-                  
+
                   {curriculum.gap_analysis && (
                     <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--glass-border)' }}>
                       <h4 style={{ color: 'var(--neon-pink)', marginBottom: '1rem', fontSize: '1.1rem' }}>Gap Analysis (What needs to be implemented):</h4>
